@@ -1,0 +1,15 @@
+{
+  "name": "Document Follow-Up Tracker",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "postCreateCommand": "npm ci",
+  "postStartCommand": "bash .devcontainer/start.sh",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Document Tracker",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    }
+  },
+  "remoteUser": "node"
+}

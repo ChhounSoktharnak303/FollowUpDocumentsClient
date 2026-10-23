@@ -80,6 +80,17 @@ Sign in with GitHub, choose a region, and set the two secrets when prompted:
 
 The online instance starts with a fresh, empty workbook on the disk. Keep exactly one instance running against one workbook. Anyone with the URL can reach the login page, so use a strong `APP_PASSWORD`.
 
+## Run in GitHub Codespaces
+
+GitHub Pages only serves static files and cannot run this app. Codespaces runs the real Node server inside GitHub:
+
+1. On GitHub, open the repository and choose **Code > Codespaces > Create codespace on main**.
+2. Wait for setup. The app starts automatically on port 3000.
+3. The terminal prints the generated login password. Open the **Ports** tab and open port 3000.
+4. To use it from other devices, right-click port 3000, choose **Port Visibility > Public**, then share the forwarded URL.
+
+The Codespace stops after idle time. Workbook changes stay in that Codespace until you delete it, so keep backups if the data matters. For a permanent public URL, use Render or another server host with a persistent disk.
+
 ## Data storage
 
 The workbook is `data/tracker.xlsx` and contains these sheets:
