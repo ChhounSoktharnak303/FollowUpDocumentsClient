@@ -23,6 +23,16 @@ export function jsonResponse(
   });
 }
 
+export function redirectResponse(location: string): Response {
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: location,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 export async function requireApiAuth(): Promise<Response | null> {
   if (!(await isAuthenticated())) {
     return jsonResponse({ error: "UNAUTHORIZED" }, 401);

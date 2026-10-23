@@ -1,0 +1,111 @@
+{
+  "Clients": [
+    {
+      "id": "2a5430ad-e124-4124-ba16-c377d44e2216",
+      "name_kh": "អិន អឹម អិល ហ្គាម៉ិន ឯ.ក",
+      "name_en": "NML GARMENT CO., LTD.",
+      "phone": "",
+      "note": "#ផ្លូវ ភូមិ ពីងពង់ ឃុំ ដំណាក់រាំង ស្រុក សាមគ្គីមុនីជ័យ ខេត្ត កំពង់ស្ពឺ",
+      "created_at": "2026-10-23T09:40:19.492Z"
+    }
+  ],
+  "Cases": [
+    {
+      "id": "e5810ab8-c2c0-4729-8c84-d6b612d5c6d9",
+      "client_id": "2a5430ad-e124-4124-ba16-c377d44e2216",
+      "service_type": "vat-zero",
+      "ministry": "gdt",
+      "description": "Prepare Document For Client Sign And Stamp",
+      "start_date": "2026-10-19",
+      "end_date": "",
+      "status": "in_progress",
+      "share_token": "omGOpE16Rla975Age00fWo6L",
+      "created_at": "2026-10-23T09:42:57.891Z"
+    },
+    {
+      "id": "6c37facd-b94e-4e01-8f53-15bd12a704bd",
+      "client_id": "2a5430ad-e124-4124-ba16-c377d44e2216",
+      "service_type": "ownership-transfer",
+      "ministry": "land-ministry",
+      "description": "",
+      "start_date": "2026-10-23",
+      "end_date": "",
+      "status": "rejected",
+      "share_token": "MMbviMpIKYtup4Qhj_B82XE8",
+      "created_at": "2026-10-23T10:03:57.858Z"
+    }
+  ],
+  "Activities": [
+    {
+      "id": "1d460c34-bc56-477a-9036-15de48ee0de6",
+      "case_id": "e5810ab8-c2c0-4729-8c84-d6b612d5c6d9",
+      "date": "2026-10-19",
+      "ministry": "",
+      "action": "Prepare Document For Sign",
+      "status": "done",
+      "signed": "FALSE",
+      "note": "Day 19-20",
+      "created_at": "2026-10-23T09:52:01.795Z"
+    },
+    {
+      "id": "74d86831-73e8-45ac-afc0-2bf3536f6f0e",
+      "case_id": "e5810ab8-c2c0-4729-8c84-d6b612d5c6d9",
+      "date": "2026-10-23",
+      "ministry": "",
+      "action": "Waiting Document Sign Stamp From Client",
+      "status": "waiting",
+      "signed": "FALSE",
+      "note": "Day 20-23",
+      "created_at": "2026-10-23T09:53:07.254Z"
+    }
+  ],
+  "Templates": [
+    {
+      "id": "tpl-received",
+      "text_kh": "បានទទួលឯកសារពីអតិថិជន",
+      "text_en": "Received documents from client"
+    },
+    {
+      "id": "tpl-submitted",
+      "text_kh": "បានដាក់ស្នើឯកសារទៅការិយាល័យ",
+      "text_en": "Submitted documents to the office"
+    },
+    {
+      "id": "tpl-waiting",
+      "text_kh": "កំពុងរង់ចាំការឆ្លើយតប",
+      "text_en": "Waiting for a response"
+    },
+    {
+      "id": "tpl-collected",
+      "text_kh": "បានទទួលឯកសារត្រឡប់មកវិញ",
+      "text_en": "Collected the documents back"
+    },
+    {
+      "id": "tpl-fee",
+      "text_kh": "បានបង់ថ្លៃសេវា",
+      "text_en": "Service fee paid"
+    }
+  ],
+  "Settings": [
+    {
+      "key": "service_types",
+      "value": "[{\"id\":\"ownership-transfer\",\"kh\":\"ផ្ទេរកម្មសិទ្ធ\",\"en\":\"Ownership transfer\"},{\"id\":\"vat-zero\",\"kh\":\"VAT 0%\",\"en\":\"VAT 0%\"},{\"id\":\"other\",\"kh\":\"ផ្សេងៗ\",\"en\":\"Other\"}]"
+    },
+    {
+      "key": "ministries",
+      "value": "[{\"id\":\"land-ministry\",\"kh\":\"ក្រសួងរៀបចំដែនដី\",\"en\":\"Land Ministry\"},{\"id\":\"gdt\",\"kh\":\"អគ្គនាយកដ្ឋានពន្ធដារ\",\"en\":\"GDT\"},{\"id\":\"commerce-ministry\",\"kh\":\"ក្រសួងពាណិជ្ជកម្ម\",\"en\":\"Ministry of Commerce\"}]"
+    },
+    {
+      "key": "status_labels",
+      "value": "{\"in_progress\":{\"en\":\"In progress\",\"kh\":\"កំពុងដំណើរការ\"},\"waiting\":{\"en\":\"Waiting\",\"kh\":\"កំពុងរង់ចាំ\"},\"done\":{\"en\":\"Done\",\"kh\":\"រួចរាល់\"},\"success\":{\"en\":\"Success\",\"kh\":\"ជោគជ័យ\"},\"rejected\":{\"en\":\"Rejected\",\"kh\":\"បដិសេធ\"}}"
+    },
+    {
+      "key": "warning_orange_days",
+      "value": "7"
+    },
+    {
+      "key": "warning_red_days",
+      "value": "14"
+    }
+  ]
+}

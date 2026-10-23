@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import { signOut } from "@/lib/auth";
+import { redirectResponse } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(): Promise<Response> {
   await signOut();
-  return NextResponse.redirect(new URL("/login", request.url), 303);
+  return redirectResponse("/login");
 }

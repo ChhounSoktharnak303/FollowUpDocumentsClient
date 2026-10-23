@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Document Follow-Up Tracker</title>
+<style>
+:root {
+  --paper: #f7f5f0;
+  --paper-raised: #fbf9f4;
+  --surface: #fffdf9;
+  --surface-muted: #efebe2;
+  --surface-strong: #e7e1d5;
+  --ink: #14201f;
+  --ink-soft: #34423f;
+  --muted: #6b746f;
+  --line: #ddd6c9;
+  --line-strong: #c7bfaf;
+  --accent: #0f766e;
+  --accent-strong: #0b5f59;
+  --accent-soft: #dff0eb;
+  --warning: #b45309;
+  --warning-soft: #fef0d7;
+  --danger: #b42318;
+  --danger-soft: #fde8e6;
+  --success: #0f766e;
+  --success-soft: #dff0eb;
+  --shadow: 0 12px 32px rgba(20, 32, 31, 0.12);
+}
+html.dark {
+  --paper: #0f1716;
+  --paper-raised: #121c1a;
+  --surface: #16201e;
+  --surface-muted: #1d2825;
+  --surface-strong: #24312e;
+  --ink: #f1eee6;
+  --ink-soft: #d3d4cc;
+  --muted: #9ba7a1;
+  --line: #2d3b37;
+  --line-strong: #40514b;
+  --accent: #35a99f;
+  --accent-strong: #52bdb3;
+  --accent-soft: #173b37;
+  --warning: #f3ad5c;
+  --warning-soft: #352612;
+  --danger: #f08c82;
+  --danger-soft: #351a18;
+  --success: #35a99f;
+  --success-soft: #173b37;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Inter, "Noto Sans Khmer", "Khmer OS", ui-sans-serif, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+::selection { background: var(--accent); color: #fff; }
+.shell { display: flex; min-height: 100vh; }
+.sidebar {
+  position: sticky; top: 0; height: 100vh; width: 250px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 22px;
+  padding: 22px 16px; background: var(--paper-raised); border-right: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
+  background: var(--accent); color: #fff; font-weight: 800; font-size: 13px; letter-spacing: .5px;
+}
+.brand b { display: block; font-size: .92rem; line-height: 1.2; }
+.brand small { display: block; color: var(--muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav a {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
+  color: var(--muted); font-weight: 550; transition: background .15s, color .15s;
+}
+.nav a:hover { background: var(--surface-muted); color: var(--ink); }
+.nav a.active { background: var(--accent-soft); color: var(--accent-strong); }
+.nav svg { width: 17px; height: 17px; }
+.sidebar-foot { margin-top: auto; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.sidebar-foot p { margin: 0 0 6px; font-size: .7rem; color: var(--muted); line-height: 1.5; }
+.sidebar-foot a { color: var(--accent-strong); font-size: .72rem; font-weight: 600; }
+.main { flex: 1; min-width: 0; }
+.topbar {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 28px; border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px);
+}
+.topbar-title { font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.content { max-width: 1180px; margin: 0 auto; padding: 28px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.eyebrow { margin: 0; color: var(--accent); font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.page-title { margin: 4px 0 0; font-size: clamp(1.5rem, 3vw, 2.05rem); line-height: 1.15; letter-spacing: -.02em; }
+.lead { margin: 8px 0 0; color: var(--muted); max-width: 62ch; font-size: .86rem; }
+.date-chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: .74rem; color: var(--muted); white-space: nowrap; }
+.preview-banner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px;
+  padding: 10px 12px; border: 1px solid var(--line); border-left: 3px solid var(--accent);
+  border-radius: 8px; background: var(--surface); font-size: .76rem; color: var(--ink-soft);
+}
+.preview-banner b { color: var(--ink); }
+.preview-banner a { color: var(--accent-strong); font-weight: 650; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 15px; }
+.stat[data-tone="danger"] { border-color: var(--danger); }
+.stat[data-tone="success"] { border-color: var(--accent); }
+.stat-label { margin: 0; font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.stat-value { margin: 6px 0 0; font-size: 1.8rem; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums; }
+.section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.section-title { margin: 0; font-size: 1rem; letter-spacing: -.01em; }
+.hint { color: var(--muted); font-size: .72rem; }
+.queue { display: flex; flex-direction: column; gap: 8px; }
+.queue-row { display: flex; justify-content: space-between; gap: 16px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 11px; }
+.queue-row[data-tone="red"] { border-left: 3px solid var(--danger); }
+.queue-row[data-tone="orange"] { border-left: 3px solid var(--warning); }
+.queue-main { min-width: 0; }
+.queue-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: .68rem; }
+.queue-client { margin: 3px 0 0; font-size: .98rem; letter-spacing: -.01em; }
+.queue-service { margin: 2px 0 0; color: var(--muted); font-size: .76rem; }
+.queue-meta-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 8px; }
+.queue-side { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+.queue-actions { display: flex; gap: 6px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: .66rem; font-weight: 650; border: 1px solid transparent; white-space: nowrap; }
+.badge[data-tone="normal"] { background: var(--surface-muted); color: var(--ink-soft); border-color: var(--line); }
+.badge[data-tone="orange"] { background: var(--warning-soft); color: var(--warning); border-color: var(--warning); }
+.badge[data-tone="red"] { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+.badge[data-tone="green"] { background: var(--success-soft); color: var(--success); border-color: var(--accent); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-muted); font-size: .68rem; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+.chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.chip[data-status="in_progress"] { color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft); }
+.chip[data-status="in_progress"] i { background: var(--accent); }
+.chip[data-status="waiting"] { color: var(--warning); border-color: var(--warning); background: var(--warning-soft); }
+.chip[data-status="waiting"] i { background: var(--warning); }
+.chip[data-status="done"], .chip[data-status="success"] { color: var(--success); border-color: var(--accent); background: var(--success-soft); }
+.chip[data-status="done"] i, .chip[data-status="success"] i { background: var(--success); }
+.chip[data-status="rejected"] { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+.chip[data-status="rejected"] i { background: var(--danger); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-size: .78rem; font-weight: 650; transition: background .15s, border-color .15s, color .15s; }
+.btn:hover { background: var(--surface-muted); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.btn-quiet { background: transparent; }
+.btn-danger { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+.btn-sm { padding: 5px 8px; font-size: .7rem; border-radius: 6px; }
+.btn-icon { width: 34px; height: 34px; padding: 0; }
+.btn svg { width: 15px; height: 15px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; padding: 12px; margin-bottom: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field-label { font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.input, .select, .textarea { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 7px; padding: 7px 9px; font-size: .8rem; outline: none; }
+.input:focus, .select:focus, .textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.textarea { resize: vertical; min-height: 70px; }
+.search-wrap { position: relative; flex: 1 1 220px; }
+.search-wrap .input { padding-left: 30px; }
+.search-wrap svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; min-width: 760px; }
+th { text-align: left; padding: 10px 12px; font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--surface-muted); border-bottom: 1px solid var(--line); }
+td { padding: 11px 12px; border-bottom: 1px solid var(--line); font-size: .78rem; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--paper-raised); }
+.row-client { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.avatar { width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-strong); display: grid; place-items: center; font-weight: 700; font-size: .68rem; flex-shrink: 0; }
+.row-client b { display: block; font-size: .8rem; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-client small { display: block; color: var(--muted); font-size: .66rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 11px; }
+.card-body { padding: 16px; }
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+.empty h3 { margin: 8px 0 4px; color: var(--ink); font-size: 1rem; }
+.empty p { margin: 0 0 14px; font-size: .8rem; }
+.empty svg { width: 28px; height: 28px; color: var(--accent); }
+.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.detail-title { margin: 6px 0 0; font-size: clamp(1.35rem, 2.6vw, 1.8rem); line-height: 1.2; }
+.detail-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; color: var(--muted); font-size: .74rem; }
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, .75fr); gap: 18px; align-items: start; }
+.panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+.panel-head h2 { margin: 0; font-size: .9rem; }
+.panel-head p { margin: 2px 0 0; }
+.back-link { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: .74rem; margin-bottom: 14px; }
+.back-link:hover { color: var(--accent-strong); }
+.timeline { display: flex; flex-direction: column; }
+.timeline-item { position: relative; display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.timeline-item:last-child { border-bottom: 0; }
+.timeline-date { color: var(--muted); font-size: .7rem; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.timeline-body { min-width: 0; }
+.timeline-action { margin: 0; font-size: .82rem; font-weight: 600; overflow-wrap: anywhere; }
+.timeline-sub { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-top: 4px; color: var(--muted); font-size: .68rem; }
+.timeline-note { margin: 6px 0 0; font-size: .72rem; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.timeline-tools { display: flex; justify-content: flex-end; margin-top: 4px; }
+.dl { margin: 0; }
+.dl-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.dl-row:last-child { border-bottom: 0; }
+.dl dt { color: var(--muted); font-size: .68rem; }
+.dl dd { margin: 0; text-align: right; font-size: .76rem; overflow-wrap: anywhere; }
+.share-box { display: flex; gap: 6px; margin-top: 8px; }
+.share-box .input { font-size: .7rem; }
+.settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+.option-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.option-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper-raised); font-size: .76rem; }
+.option-row small { color: var(--muted); margin-left: 6px; }
+.inline-form { display: flex; gap: 6px; flex-wrap: wrap; }
+.inline-form .input { flex: 1 1 120px; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.check { display: flex; align-items: center; gap: 8px; font-size: .78rem; }
+.check input { width: 15px; height: 15px; accent-color: var(--accent); }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(20, 32, 31, .42); z-index: 50; }
+.modal-wrap { position: fixed; inset: 0; z-index: 51; display: grid; place-items: center; padding: 18px; pointer-events: none; }
+.modal { width: min(560px, 100%); max-height: 90vh; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); pointer-events: auto; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.modal-head h2 { margin: 0; font-size: .95rem; }
+.modal-body { padding: 16px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--paper-raised); }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.form-grid .span-2 { grid-column: 1 / -1; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70; background: var(--ink); color: var(--paper); padding: 9px 14px; border-radius: 8px; font-size: .76rem; box-shadow: var(--shadow); }
+.mobile-nav { display: none; }
+.track-wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+.track-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+.track-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.track-hero { padding: 20px; border-bottom: 1px solid var(--line); }
+.track-hero h1 { margin: 4px 0 0; font-size: 1.35rem; }
+.track-list { display: flex; flex-direction: column; }
+.track-item { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.track-item:last-child { border-bottom: 0; }
+.track-item p { margin: 0; font-size: .8rem; }
+.track-item small { color: var(--muted); font-size: .68rem; }
+.track-foot { margin-top: 16px; text-align: center; color: var(--muted); font-size: .68rem; }
+@media (max-width: 960px) {
+  .sidebar { display: none; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .detail-grid, .settings-grid { grid-template-columns: 1fr; }
+  .content { padding: 18px; }
+  .topbar { padding: 10px 18px; }
+  .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; background: var(--paper-raised); border-top: 1px solid var(--line); padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+  .mobile-nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 2px; border-radius: 7px; color: var(--muted); font-size: .6rem; font-weight: 600; }
+  .mobile-nav a.active { color: var(--accent-strong); background: var(--accent-soft); }
+  .mobile-nav svg { width: 18px; height: 18px; }
+  .content { padding-bottom: 80px; }
+}
+@media (max-width: 560px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .queue-row { flex-direction: column; }
+  .queue-side { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+  .timeline-item { grid-template-columns: 1fr; gap: 4px; }
+}
+@media print {
+  .sidebar, .topbar, .mobile-nav, .preview-banner, .btn, .queue-actions { display: none !important; }
+  .content { padding: 0; max-width: none; }
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const STORAGE_KEY = "zkth-tracker-static-v1";
+const THEME_KEY = "zkth-tracker-theme";
+const CASE_STATUSES = ["in_progress", "waiting", "done", "success", "rejected"];
+const ACTIVITY_STATUSES = ["in_progress", "waiting", "done", "rejected"];
+const STATUS_FALLBACK = {
+  in_progress: { en: "In progress", kh: "កំពុងដំណើរការ" },
+  waiting: { en: "Waiting", kh: "កំពុងរង់ចាំ" },
+  done: { en: "Done", kh: "រួចរាល់" },
+  success: { en: "Success", kh: "ជោគជ័យ" },
+  rejected: { en: "Rejected", kh: "បដិសេធ" }
+};
+const SERVICE_FALLBACK = [
+  { id: "ownership-transfer", kh: "ផ្ទេរកម្មសិទ្ធ", en: "Ownership transfer" },
+  { id: "vat-zero", kh: "VAT 0%", en: "VAT 0%" },
+  { id: "other", kh: "ផ្សេងៗ", en: "Other" }
+];
+const MINISTRY_FALLBACK = [
+  { id: "land-ministry", kh: "ក្រសួងរៀបចំដែនដី", en: "Land Ministry" },
+  { id: "gdt", kh: "អគ្គនាយកដ្ឋានពន្ធដារ", en: "GDT" },
+  { id: "commerce-ministry", kh: "ក្រសួងពាណិជ្ជកម្ម", en: "Ministry of Commerce" }
+];
+
+let db = null;
+let ui = {
+  modal: null,
+  filters: {
+    cases: { q: "", status: "", ministry: "", serviceType: "", sort: "attention" },
+    clients: { q: "" }
+  }
+};
+
+const app = document.getElementById("app");
+const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const slug = (s) => String(s || "option").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "option";
+const today = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const parseDay = (iso) => { const p = String(iso || "").slice(0, 10).split("-").map(Number); return p.length === 3 && p[0] ? Date.UTC(p[0], p[1] - 1, p[2]) : null; };
+const daysBetween = (a, b) => { const x = parseDay(a), y = parseDay(b); return x == null || y == null ? 0 : Math.max(0, Math.round((y - x) / 86400000)); };
+const daysSince = (iso) => { const x = parseDay(iso); if (x == null) return 0; const d = new Date(); return Math.max(0, Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - x) / 86400000)); };
+const fmtDate = (iso) => { const x = parseDay(iso); if (x == null) return "—"; return new Date(x).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }); };
+const shortId = (id) => String(id || "").slice(0, 6).toUpperCase();
+
+const icon = (name) => {
+  const paths = {
+    today: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+    cases: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    clients: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/>',
+    settings: '<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.35a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.04H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.65 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.64 1.7 1.7 0 0 0 10.04 3.08V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15.08 4.65a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.44 9c.13.63.7 1.08 1.34 1.08H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+    arrow: '<path d="m15 18-6-6 6-6"/>',
+    external: '<path d="M14 3h7v7M21 3l-9 9"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/>',
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.7 6.8-4M8.6 13.3l6.8 4"/>',
+    trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"/>',
+    moon: '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
+  };
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (paths[name] || "") + "</svg>";
+};
+
+function defaultSettings() {
+  return {
+    serviceTypes: SERVICE_FALLBACK.map((o) => ({ ...o })),
+    ministries: MINISTRY_FALLBACK.map((o) => ({ ...o })),
+    statusLabels: JSON.parse(JSON.stringify(STATUS_FALLBACK)),
+    warningOrangeDays: 7,
+    warningRedDays: 14
+  };
+}
+function emptyDb() {
+  return { clients: [], cases: [], activities: [], templates: [], settings: defaultSettings() };
+}
+function fromSeed(raw) {
+  const map = {};
+  for (const row of raw.Settings || []) map[row.key] = row.value;
+  let serviceTypes = defaultSettings().serviceTypes;
+  let ministries = defaultSettings().ministries;
+  let statusLabels = defaultSettings().statusLabels;
+  try { if (map.service_types) serviceTypes = JSON.parse(map.service_types); } catch {}
+  try { if (map.ministries) ministries = JSON.parse(map.ministries); } catch {}
+  try { if (map.status_labels) statusLabels = { ...STATUS_FALLBACK, ...JSON.parse(map.status_labels) }; } catch {}
+  return {
+    clients: (raw.Clients || []).map((c) => ({ id: c.id, nameKh: c.name_kh || "", nameEn: c.name_en || "", phone: c.phone || "", note: c.note || "", createdAt: c.created_at || new Date().toISOString() })),
+    cases: (raw.Cases || []).map((c) => ({ id: c.id, clientId: c.client_id, serviceType: c.service_type || "", ministry: c.ministry || "", description: c.description || "", startDate: String(c.start_date || "").slice(0, 10), endDate: String(c.end_date || "").slice(0, 10), status: CASE_STATUSES.includes(c.status) ? c.status : "in_progress", shareToken: c.share_token || uid().replace(/-/g, "").slice(0, 24), createdAt: c.created_at || new Date().toISOString() })),
+    activities: (raw.Activities || []).map((a) => ({ id: a.id, caseId: a.case_id, date: String(a.date || "").slice(0, 10) || today(), ministry: a.ministry || "", action: a.action || "", status: ACTIVITY_STATUSES.includes(a.status) ? a.status : "in_progress", signed: String(a.signed).toLowerCase() === "true", note: a.note || "", createdAt: a.created_at || new Date().toISOString() })),
+    templates: (raw.Templates || []).map((t) => ({ id: t.id, textKh: t.text_kh || "", textEn: t.text_en || "" })),
+    settings: {
+      serviceTypes: Array.isArray(serviceTypes) && serviceTypes.length ? serviceTypes : defaultSettings().serviceTypes,
+      ministries: Array.isArray(ministries) && ministries.length ? ministries : defaultSettings().ministries,
+      statusLabels,
+      warningOrangeDays: Number(map.warning_orange_days) || 7,
+      warningRedDays: Number(map.warning_red_days) || 14
+    }
+  };
+}
+function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch (e) { console.error(e); } }
+function load() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
+
+const clientById = (id) => db.clients.find((c) => c.id === id) || null;
+const caseById = (id) => db.cases.find((c) => c.id === id) || null;
+const clientName = (c) => (c && (c.nameEn || c.nameKh)) || "Unnamed client";
+const clientSecondary = (c) => (c && c.nameEn && c.nameKh ? c.nameKh : "");
+const optionLabel = (id, list) => { const o = (list || []).find((x) => x.id === id); return o ? (o.en || o.kh || id) : (id || "—"); };
+const statusLabel = (status) => (db.settings.statusLabels[status] || STATUS_FALLBACK[status] || { en: status }).en;
+const isClosed = (c) => c.status === "done" || c.status === "success";
+const isOpen = (c) => !isClosed(c) && c.status !== "rejected";
+const activitiesFor = (caseId) => db.activities.filter((a) => a.caseId === caseId).sort((a, b) => (a.date + a.createdAt).localeCompare(b.date + b.createdAt));
+const lastActivity = (caseId) => { const list = activitiesFor(caseId); return list.length ? list[list.length - 1] : null; };
+const lastUpdateDate = (c) => (lastActivity(c.id) ? lastActivity(c.id).date : c.startDate || c.createdAt.slice(0, 10));
+const caseDaysOpen = (c) => daysBetween(c.startDate || c.createdAt.slice(0, 10), isClosed(c) && c.endDate ? c.endDate : today());
+const caseQuietDays = (c) => daysSince(lastUpdateDate(c));
+const warningTone = (days) => days >= db.settings.warningRedDays ? "red" : days >= db.settings.warningOrangeDays ? "orange" : "normal";
+
+function parseRoute() {
+  const raw = location.hash.replace(/^#\/?/, "");
+  const parts = raw.split("/").filter(Boolean);
+  if (!parts.length) return { page: "today" };
+  if (parts[0] === "track") return { page: "track", token: parts[1] || "" };
+  if (parts[0] === "cases" && parts[1]) return { page: "case", id: parts[1] };
+  if (["today", "cases", "clients", "settings"].includes(parts[0])) return { page: parts[0] };
+  return { page: "today" };
+}
+const pageTitle = (r) => ({ today: "Today", cases: "Cases", case: "Case file", clients: "Clients", settings: "Settings" }[r.page] || "Today");
+
+function render() {
+  const route = parseRoute();
+  if (route.page === "track") { app.innerHTML = trackPage(route.token); window.scrollTo(0, 0); return; }
+  let page = "";
+  if (route.page === "today") page = todayPage();
+  else if (route.page === "cases") page = casesPage();
+  else if (route.page === "case") page = casePage(route.id);
+  else if (route.page === "clients") page = clientsPage();
+  else page = settingsPage();
+  app.innerHTML = '<div class="shell">' + sidebar(route) + '<main class="main"><div class="topbar"><span class="topbar-title">' + esc(pageTitle(route)) + '</span><div class="topbar-actions"><button class="btn btn-icon btn-quiet" data-action="toggle-theme" title="Toggle theme">' + icon("moon") + '</button><a class="btn btn-icon btn-quiet" href="https://github.com/ChhounSoktharnak303/FollowUpDocumentsClient" target="_blank" rel="noreferrer" title="GitHub repository">' + icon("external") + '</a></div></div><div class="content">' + page + '</div>' + mobileNav(route) + '</main></div>' + renderModal();
+  window.scrollTo(0, 0);
+}
+function sidebar(route) {
+  const active = (p) => route.page === p || (p === "cases" && route.page === "case") ? " class=\"active\"" : "";
+  return '<aside class="sidebar"><a class="brand" href="#/today"><span class="brand-mark">ZK</span><span><b>ZKTH Tracker</b><small>Document follow-up</small></span></a><nav class="nav"><a href="#/today"' + active("today") + '>' + icon("today") + 'Today</a><a href="#/cases"' + active("cases") + '>' + icon("cases") + 'Cases</a><a href="#/clients"' + active("clients") + '>' + icon("clients") + 'Clients</a><a href="#/settings"' + active("settings") + '>' + icon("settings") + 'Settings</a></nav><div class="sidebar-foot"><p><b>Preview edition.</b> Data is saved in this browser only.</p><a href="https://github.com/ChhounSoktharnak303/FollowUpDocumentsClient#run-in-github-codespaces" target="_blank" rel="noreferrer">Open the full shared version</a></div></aside>';
+}
+function mobileNav(route) {
+  const active = (p) => route.page === p || (p === "cases" && route.page === "case") ? " class=\"active\"" : "";
+  return '<nav class="mobile-nav"><a href="#/today"' + active("today") + '>' + icon("today") + 'Today</a><a href="#/cases"' + active("cases") + '>' + icon("cases") + 'Cases</a><a href="#/clients"' + active("clients") + '>' + icon("clients") + 'Clients</a><a href="#/settings"' + active("settings") + '>' + icon("settings") + 'Settings</a></nav>';
+}
+function banner() {
+  return '<div class="preview-banner"><b>GitHub Pages preview.</b> This version runs fully in your browser and saves data on this device. For shared Excel data, <a href="https://github.com/ChhounSoktharnak303/FollowUpDocumentsClient#run-in-github-codespaces" target="_blank" rel="noreferrer">open the full app</a>.</div>';
+}
+
+function todayPage() {
+  const rows = db.cases.map((c) => ({ c, client: clientById(c.clientId), days: caseQuietDays(c) })).filter((x) => x.c.status === "rejected" || isOpen(x.c)).sort((a, b) => b.days - a.days);
+  const open = db.cases.filter(isOpen).length;
+  const waiting = db.cases.filter((c) => c.status === "waiting").length;
+  const overdue = db.cases.filter((c) => isOpen(c) && caseQuietDays(c) >= db.settings.warningRedDays).length;
+  const month = today().slice(0, 7);
+  const completed = db.cases.filter((c) => isClosed(c) && (c.endDate || lastUpdateDate(c)).slice(0, 7) === month).length;
+  const stats = [["Open cases", open, ""], ["Waiting", waiting, ""], ["Overdue", overdue, "danger"], ["Completed this month", completed, "success"]];
+  let list = "";
+  if (!rows.length) {
+    list = '<div class="card empty">' + icon("cases") + '<h3>No cases need attention</h3><p>Add a client and a case to start tracking.</p><a class="btn btn-primary" href="#/cases/new" data-action="add-case">' + icon("plus") + 'New case</a></div>';
+  } else {
+    list = '<div class="queue">' + rows.map(({ c, client, days }) => {
+      const reason = c.status === "rejected" ? "Rejected" : c.status === "waiting" ? "Waiting for response" : "No recent update";
+      const tone = c.status === "rejected" ? "red" : warningTone(days);
+      return '<article class="queue-row" data-tone="' + tone + '"><div class="queue-main"><div class="queue-meta"><span>#' + esc(shortId(c.id)) + '</span><span>/</span><span>' + esc(optionLabel(c.serviceType, db.settings.serviceTypes)) + '</span><span>/</span><span>' + esc(optionLabel(c.ministry, db.settings.ministries)) + '</span></div><a href="#/cases/' + esc(c.id) + '"><h3 class="queue-client">' + esc(clientName(client)) + '</h3></a><p class="queue-service">' + esc(c.description || optionLabel(c.serviceType, db.settings.serviceTypes)) + '</p><div class="queue-meta-row"><span class="badge" data-tone="' + (reason === "Rejected" ? "red" : reason === "Waiting for response" ? "orange" : "normal") + '">' + esc(reason) + '</span><span class="hint">Last update: ' + esc(fmtDate(lastUpdateDate(c))) + '</span><span class="chip" data-status="' + esc(c.status) + '"><i></i>' + esc(statusLabel(c.status)) + '</span></div></div><div class="queue-side"><span class="badge" data-tone="' + tone + '">' + days + ' days</span><div class="queue-actions"><button class="btn btn-sm btn-secondary" data-action="add-activity" data-case="' + esc(c.id) + '">' + icon("plus") + 'Activity</button><a class="btn btn-sm btn-quiet" href="#/cases/' + esc(c.id) + '" title="Open case">' + icon("external") + '</a></div></div></article>';
+    }).join("") + "</div>";
+  }
+  return '<header class="page-head"><div><p class="eyebrow">Today</p><h1 class="page-title">Follow-up dashboard</h1><p class="lead">Focus on the cases that need a call, a document, or a status update.</p></div><span class="date-chip">' + esc(fmtDate(today())) + '</span></header>' + banner() + '<section class="stats">' + stats.map(([label, value, tone]) => '<div class="stat" data-tone="' + tone + '"><p class="stat-label">' + esc(label) + '</p><p class="stat-value">' + value + '</p></div>').join("") + '</section><section><div class="section-head"><div><h2 class="section-title">Needs attention</h2><p class="hint">' + rows.length + ' case' + (rows.length === 1 ? "" : "s") + '</p></div><a class="btn btn-sm btn-secondary" href="#/cases">All cases ' + icon("external") + '</a></div>' + list + '</section>';
+}
+
+function casesPage() {
+  const f = ui.filters.cases;
+  const q = f.q.trim().toLowerCase();
+  let rows = db.cases.map((c) => ({ c, client: clientById(c.clientId) }));
+  if (q) rows = rows.filter(({ c, client }) => [clientName(client), clientSecondary(client), c.description, c.id, optionLabel(c.serviceType, db.settings.serviceTypes), optionLabel(c.ministry, db.settings.ministries)].join(" ").toLowerCase().includes(q));
+  if (f.status) rows = rows.filter(({ c }) => c.status === f.status);
+  if (f.ministry) rows = rows.filter(({ c }) => c.ministry === f.ministry);
+  if (f.serviceType) rows = rows.filter(({ c }) => c.serviceType === f.serviceType);
+  rows.sort((a, b) => {
+    if (f.sort === "newest") return b.c.createdAt.localeCompare(a.c.createdAt);
+    if (f.sort === "oldest") return a.c.createdAt.localeCompare(b.c.createdAt);
+    if (f.sort === "days_open") return caseDaysOpen(b.c) - caseDaysOpen(a.c);
+    if (f.sort === "client") return clientName(a.client).localeCompare(clientName(b.client));
+    return caseQuietDays(b.c) - caseQuietDays(a.c);
+  });
+  let body = "";
+  if (!rows.length) {
+    body = '<div class="card empty">' + icon("cases") + '<h3>' + (q || f.status || f.ministry || f.serviceType ? "No cases match those filters" : "No cases yet") + '</h3><p>' + (q || f.status || f.ministry || f.serviceType ? "Try clearing the filters." : "Create your first case to start tracking.") + '</p><a class="btn btn-primary" href="#/cases/new" data-action="add-case">' + icon("plus") + 'New case</a></div>';
+  } else {
+    body = '<div class="table-wrap"><table><thead><tr><th>No.</th><th>Client</th><th>Service</th><th>Ministry</th><th>Start</th><th>Days open</th><th>Status</th></tr></thead><tbody>' + rows.map(({ c, client }, i) => {
+      const tone = warningTone(caseQuietDays(c));
+      return '<tr><td class="hint">' + String(i + 1).padStart(2, "0") + '</td><td><a class="row-client" href="#/cases/' + esc(c.id) + '"><span class="avatar">' + esc((clientName(client).match(/[A-Za-z0-9\u1780-\u17FF]/g) || ["?"]).slice(0, 2).join("").toUpperCase()) + '</span><span><b>' + esc(clientName(client)) + '</b>' + (clientSecondary(client) ? '<small>' + esc(clientSecondary(client)) + '</small>' : "") + '</span></a></td><td>' + esc(optionLabel(c.serviceType, db.settings.serviceTypes)) + '</td><td>' + esc(optionLabel(c.ministry, db.settings.ministries)) + '</td><td>' + esc(fmtDate(c.startDate)) + '</td><td><span class="badge" data-tone="' + tone + '">' + caseDaysOpen(c) + ' days</span></td><td><span class="chip" data-status="' + esc(c.status) + '"><i></i>' + esc(statusLabel(c.status)) + '</span></td></tr>';
+    }).join("") + '</tbody></table></div>';
+  }
+  const statusOptions = CASE_STATUSES.map((s) => '<option value="' + s + '"' + (f.status === s ? " selected" : "") + '>' + esc(statusLabel(s)) + '</option>').join("");
+  const ministryOptions = db.settings.ministries.map((o) => '<option value="' + esc(o.id) + '"' + (f.ministry === o.id ? " selected" : "") + '>' + esc(o.en || o.kh) + '</option>').join("");
+  const serviceOptions = db.settings.serviceTypes.map((o) => '<option value="' + esc(o.id) + '"' + (f.serviceType === o.id ? " selected" : "") + '>' + esc(o.en || o.kh) + '</option>').join("");
+  return '<header class="page-head"><div><p class="eyebrow">Cases</p><h1 class="page-title">All cases</h1><p class="lead">Every client file, its ministry, status, and age.</p></div><button class="btn btn-primary" data-action="add-case">' + icon("plus") + 'New case</button></header>' + banner() + '<form class="filters" data-form="filter-cases"><div class="search-wrap">' + icon("search") + '<input class="input" name="q" value="' + esc(f.q) + '" placeholder="Search client, service, or case ID" /></div><div class="field"><label class="field-label">Status</label><select class="select" name="status"><option value="">All statuses</option>' + statusOptions + '</select></div><div class="field"><label class="field-label">Ministry</label><select class="select" name="ministry"><option value="">All ministries</option>' + ministryOptions + '</select></div><div class="field"><label class="field-label">Service</label><select class="select" name="serviceType"><option value="">All services</option>' + serviceOptions + '</select></div><div class="field"><label class="field-label">Sort</label><select class="select" name="sort"><option value="attention"' + (f.sort === "attention" ? " selected" : "") + '>Needs attention</option><option value="newest"' + (f.sort === "newest" ? " selected" : "") + '>Newest first</option><option value="oldest"' + (f.sort === "oldest" ? " selected" : "") + '>Oldest first</option><option value="days_open"' + (f.sort === "days_open" ? " selected" : "") + '>Most days open</option><option value="client"' + (f.sort === "client" ? " selected" : "") + '>Client name</option></select></div><button class="btn btn-secondary" type="submit">Apply</button><a class="btn btn-quiet" href="#/cases" data-action="clear-case-filters">Clear</a></form><div class="hint" style="margin-bottom:8px">' + rows.length + ' case' + (rows.length === 1 ? "" : "s") + '</div>' + body;
+}
+
+function casePage(id) {
+  const c = caseById(id);
+  if (!c) return '<div class="card empty"><h3>Case not found</h3><p>It may have been deleted.</p><a class="btn btn-secondary" href="#/cases">Back to cases</a></div>';
+  const client = clientById(c.clientId);
+  const acts = activitiesFor(c.id);
+  const quiet = caseQuietDays(c);
+  const shareUrl = location.origin + location.pathname + "#/track/" + c.shareToken;
+  const actHtml = acts.length ? '<div class="timeline">' + acts.map((a) => '<div class="timeline-item"><div class="timeline-date">' + esc(fmtDate(a.date)) + '</div><div class="timeline-body"><p class="timeline-action">' + esc(a.action || "Activity") + '</p><div class="timeline-sub"><span class="chip" data-status="' + esc(a.status) + '"><i></i>' + esc(statusLabel(a.status)) + '</span>' + (a.ministry ? '<span>' + esc(optionLabel(a.ministry, db.settings.ministries)) + '</span>' : "") + (a.signed ? '<span>Signed</span>' : "") + '</div>' + (a.note ? '<p class="timeline-note">' + esc(a.note) + '</p>' : "") + '<div class="timeline-tools"><button class="btn btn-sm btn-quiet" data-action="delete-activity" data-id="' + esc(a.id) + '">' + icon("trash") + 'Remove</button></div></div></div>').join("") + '</div>' : '<div class="empty"><p>No activities yet.</p><button class="btn btn-primary" data-action="add-activity" data-case="' + esc(c.id) + '">' + icon("plus") + 'Add the first activity</button></div>';
+  return '<a class="back-link" href="#/cases">' + icon("arrow") + 'Back to cases</a><header class="detail-head"><div class="min-w-0"><div class="queue-meta"><span class="eyebrow">Case #' + esc(shortId(c.id)) + '</span><span class="chip" data-status="' + esc(c.status) + '"><i></i>' + esc(statusLabel(c.status)) + '</span></div><h1 class="detail-title">' + esc(clientName(client)) + '</h1><div class="detail-meta"><span>' + esc(optionLabel(c.serviceType, db.settings.serviceTypes)) + '</span><span>' + esc(optionLabel(c.ministry, db.settings.ministries)) + '</span><span>' + quiet + ' days since update</span></div></div><div class="queue-actions"><button class="btn btn-primary" data-action="add-activity" data-case="' + esc(c.id) + '">' + icon("plus") + 'Add activity</button></div></header><div class="detail-grid"><div class="stack"><section class="card"><div class="panel-head"><div><h2>Activities</h2><p class="hint">Newest updates are at the bottom.</p></div><span class="hint">' + acts.length + ' total</span></div>' + actHtml + '</section></div><aside class="stack"><section class="card"><div class="panel-head"><h2>Case details</h2></div><div class="card-body"><div class="field" style="margin-bottom:12px"><label class="field-label">Status</label><select class="select" data-case-status="' + esc(c.id) + '">' + CASE_STATUSES.map((s) => '<option value="' + s + '"' + (c.status === s ? " selected" : "") + '>' + esc(statusLabel(s)) + '</option>').join("") + '</select></div><dl class="dl"><div class="dl-row"><dt>Client</dt><dd>' + esc(clientName(client)) + '</dd></div>' + (client && client.phone ? '<div class="dl-row"><dt>Phone</dt><dd>' + esc(client.phone) + '</dd></div>' : "") + '<div class="dl-row"><dt>Service</dt><dd>' + esc(optionLabel(c.serviceType, db.settings.serviceTypes)) + '</dd></div><div class="dl-row"><dt>Ministry</dt><dd>' + esc(optionLabel(c.ministry, db.settings.ministries)) + '</dd></div><div class="dl-row"><dt>Start date</dt><dd>' + esc(fmtDate(c.startDate)) + '</dd></div>' + (c.endDate ? '<div class="dl-row"><dt>End date</dt><dd>' + esc(fmtDate(c.endDate)) + '</dd></div>' : "") + '<div class="dl-row"><dt>Days open</dt><dd>' + caseDaysOpen(c) + '</dd></div><div class="dl-row"><dt>Last update</dt><dd>' + esc(fmtDate(lastUpdateDate(c))) + '</dd></div></dl>' + (client && client.note ? '<div style="margin-top:10px"><div class="field-label">Internal note</div><p class="hint" style="white-space:pre-wrap;margin:4px 0 0">' + esc(client.note) + '</p></div>' : "") + '<button class="btn btn-danger btn-sm" style="margin-top:14px" data-action="delete-case" data-id="' + esc(c.id) + '">' + icon("trash") + 'Delete case</button></div></section><section class="card"><div class="panel-head"><h2>Share link</h2></div><div class="card-body"><p class="hint" style="margin:0">Read-only preview. It hides internal notes and signatures.</p><div class="share-box"><input class="input" readonly value="' + esc(shareUrl) + '" /><button class="btn btn-secondary" data-action="copy" data-value="' + esc(shareUrl) + '">' + icon("copy") + 'Copy</button></div><a class="btn btn-sm btn-quiet" style="margin-top:8px" href="#/track/' + esc(c.shareToken) + '" target="_blank" rel="noreferrer">' + icon("share") + 'Open share preview</a></div></section></aside></div>';
+}
+
+function clientsPage() {
+  const q = ui.filters.clients.q.trim().toLowerCase();
+  let rows = db.clients.slice().sort((a, b) => clientName(a).localeCompare(clientName(b)));
+  if (q) rows = rows.filter((c) => [c.nameEn, c.nameKh, c.phone, c.note].join(" ").toLowerCase().includes(q));
+  let body = "";
+  if (!rows.length) {
+    body = '<div class="card empty">' + icon("clients") + '<h3>' + (q ? "No clients match" : "No clients yet") + '</h3><p>' + (q ? "Try a different search." : "Add the first client to create cases.") + '</p><button class="btn btn-primary" data-action="add-client">' + icon("plus") + 'Add client</button></div>';
+  } else {
+    body = '<div class="card">' + rows.map((client, i) => {
+      const cases = db.cases.filter((c) => c.clientId === client.id);
+      const open = cases.filter(isOpen).length;
+      const latest = cases.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+      return '<div style="display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;padding:13px 16px;' + (i ? "border-top:1px solid var(--line);" : "") + '"><div class="row-client" style="min-width:0"><span class="avatar" style="width:36px;height:36px;border-radius:9px">' + esc((clientName(client).match(/[A-Za-z0-9\u1780-\u17FF]/g) || ["?"]).slice(0, 2).join("").toUpperCase()) + '</span><div style="min-width:0"><b style="font-size:.86rem">' + esc(clientName(client)) + '</b>' + (clientSecondary(client) ? '<small>' + esc(clientSecondary(client)) + '</small>' : "") + '<div class="hint">' + (client.phone ? esc(client.phone) + " · " : "") + 'Since ' + esc(fmtDate(String(client.createdAt).slice(0, 10))) + '</div></div></div><div class="queue-meta-row"><span class="chip" data-status="in_progress"><i></i>' + cases.length + ' case' + (cases.length === 1 ? "" : "s") + '</span><span class="hint">' + open + ' open</span>' + (latest ? '<span class="hint">Latest: ' + esc(fmtDate(latest.startDate)) + '</span>' : "") + '<button class="btn btn-sm btn-secondary" data-action="client-cases" data-client="' + esc(client.id) + '">View cases ' + icon("external") + '</button></div></div>';
+    }).join("") + "</div>";
+  }
+  return '<header class="page-head"><div><p class="eyebrow">Clients</p><h1 class="page-title">Clients</h1><p class="lead">People and companies you handle documents for.</p></div><button class="btn btn-primary" data-action="add-client">' + icon("plus") + 'Add client</button></header>' + banner() + '<form class="filters" data-form="filter-clients"><div class="search-wrap">' + icon("search") + '<input class="input" name="q" value="' + esc(ui.filters.clients.q) + '" placeholder="Search name, phone, or note" /></div><button class="btn btn-secondary" type="submit">Search</button></form><div class="hint" style="margin-bottom:8px">' + rows.length + ' client' + (rows.length === 1 ? "" : "s") + '</div>' + body;
+}
+
+function settingsPage() {
+  const s = db.settings;
+  const serviceRows = s.serviceTypes.map((o) => '<div class="option-row"><span>' + esc(o.en || o.id) + (o.kh ? '<small>' + esc(o.kh) + '</small>' : "") + '</span><button class="btn btn-sm btn-quiet" data-action="remove-service" data-id="' + esc(o.id) + '">' + icon("trash") + '</button></div>').join("");
+  const ministryRows = s.ministries.map((o) => '<div class="option-row"><span>' + esc(o.en || o.id) + (o.kh ? '<small>' + esc(o.kh) + '</small>' : "") + '</span><button class="btn btn-sm btn-quiet" data-action="remove-ministry" data-id="' + esc(o.id) + '">' + icon("trash") + '</button></div>').join("");
+  return '<header class="page-head"><div><p class="eyebrow">Settings</p><h1 class="page-title">Settings</h1><p class="lead">Options used by cases and activities.</p></div></header>' + banner() + '<div class="settings-grid"><section class="card"><div class="panel-head"><h2>Warning thresholds</h2></div><div class="card-body"><form class="stack" data-form="settings-warning"><div class="form-grid"><div class="field"><label class="field-label">Orange after (days)</label><input class="input" type="number" min="1" max="365" name="orange" value="' + s.warningOrangeDays + '" /></div><div class="field"><label class="field-label">Red after (days)</label><input class="input" type="number" min="1" max="365" name="red" value="' + s.warningRedDays + '" /></div></div><div><button class="btn btn-primary" type="submit">Save thresholds</button></div></form></div></section><section class="card"><div class="panel-head"><h2>Data</h2></div><div class="card-body"><p class="hint" style="margin:0 0 12px">Data is stored in this browser only. Export a backup before clearing your browser data.</p><div class="queue-actions" style="flex-wrap:wrap"><button class="btn btn-secondary" data-action="export">Export backup</button><button class="btn btn-secondary" data-action="import">Import backup</button><button class="btn btn-secondary" data-action="print">Print</button><button class="btn btn-danger" data-action="reset">Reset to sample data</button></div></div></section><section class="card"><div class="panel-head"><h2>Service types</h2></div><div class="card-body"><div class="option-list">' + (serviceRows || '<p class="hint">No service types.</p>') + '</div><form class="inline-form" data-form="add-service"><input class="input" name="en" placeholder="English label" required /><input class="input" name="kh" placeholder="Khmer label (optional)" /><button class="btn btn-secondary" type="submit">Add</button></form></div></section><section class="card"><div class="panel-head"><h2>Ministries</h2></div><div class="card-body"><div class="option-list">' + (ministryRows || '<p class="hint">No ministries.</p>') + '</div><form class="inline-form" data-form="add-ministry"><input class="input" name="en" placeholder="English label" required /><input class="input" name="kh" placeholder="Khmer label (optional)" /><button class="btn btn-secondary" type="submit">Add</button></form></div></section></div>';
+}
+
+function trackPage(token) {
+  const c = db.cases.find((x) => x.shareToken === token);
+  if (!c) return '<div class="track-wrap"><div class="card empty"><h3>Link not found</h3><p>This share link is invalid or was replaced.</p></div></div>';
+  const client = clientById(c.clientId);
+  const acts = activitiesFor(c.id);
+  return '<div class="track-wrap"><div class="track-brand"><span class="brand-mark">ZK</span><span><b>ZKTH Associates &amp; Partners</b><small>Document tracking</small></span></div><div class="track-panel"><div class="track-hero"><div class="queue-meta"><span class="eyebrow">Case #' + esc(shortId(c.id)) + '</span><span class="chip" data-status="' + esc(c.status) + '"><i></i>' + esc(statusLabel(c.status)) + '</span></div><h1>' + esc(clientName(client)) + '</h1><div class="detail-meta"><span>' + esc(optionLabel(c.serviceType, db.settings.serviceTypes)) + '</span><span>' + esc(optionLabel(c.ministry, db.settings.ministries)) + '</span><span>Started ' + esc(fmtDate(c.startDate)) + '</span></div></div><div class="track-list">' + (acts.length ? acts.map((a) => '<div class="track-item"><p>' + esc(a.action || "Activity") + '</p><small>' + esc(fmtDate(a.date)) + ' · ' + esc(statusLabel(a.status)) + (a.ministry ? ' · ' + esc(optionLabel(a.ministry, db.settings.ministries)) : "") + '</small></div>').join("") : '<div class="track-item"><p>No activities yet.</p></div>') + '</div></div><p class="track-foot">Read-only preview generated by the Document Follow-Up Tracker.</p></div>';
+}
+
+function renderModal() {
+  if (!ui.modal) return "";
+  const m = ui.modal;
+  let title = "";
+  let body = "";
+  if (m.type === "client") {
+    title = "Add client";
+    body = '<form class="stack" data-form="client"><div class="form-grid"><div class="field"><label class="field-label">Khmer name</label><input class="input" name="nameKh" placeholder="ឈ្មោះខ្មែរ" /></div><div class="field"><label class="field-label">English name</label><input class="input" name="nameEn" placeholder="Company or person" /></div><div class="field"><label class="field-label">Phone</label><input class="input" name="phone" placeholder="012 345 678" /></div><div class="field"><label class="field-label">Internal note</label><textarea class="textarea" name="note" placeholder="Private note"></textarea></div></div><div class="modal-foot"><button class="btn btn-quiet" type="button" data-action="close-modal">Cancel</button><button class="btn btn-primary" type="submit">Save client</button></div></form>';
+  } else if (m.type === "case") {
+    title = "New case";
+    const clientOptions = db.clients.map((c) => '<option value="' + esc(c.id) + '">' + esc(clientName(c)) + '</option>').join("");
+    body = db.clients.length ? '<form class="stack" data-form="case"><div class="form-grid"><div class="field span-2"><label class="field-label">Client</label><select class="select" name="clientId" required>' + clientOptions + '</select></div><div class="field"><label class="field-label">Service</label><select class="select" name="serviceType">' + db.settings.serviceTypes.map((o) => '<option value="' + esc(o.id) + '">' + esc(o.en || o.kh) + '</option>').join("") + '</select></div><div class="field"><label class="field-label">Ministry</label><select class="select" name="ministry">' + db.settings.ministries.map((o) => '<option value="' + esc(o.id) + '">' + esc(o.en || o.kh) + '</option>').join("") + '</select></div><div class="field span-2"><label class="field-label">Description</label><input class="input" name="description" placeholder="What needs to be done?" /></div><div class="field"><label class="field-label">Start date</label><input class="input" type="date" name="startDate" value="' + today() + '" /></div><div class="field"><label class="field-label">End date (optional)</label><input class="input" type="date" name="endDate" /></div><div class="field"><label class="field-label">Status</label><select class="select" name="status">' + CASE_STATUSES.map((s) => '<option value="' + s + '">' + esc(statusLabel(s)) + '</option>').join("") + '</select></div></div><div class="modal-foot"><button class="btn btn-quiet" type="button" data-action="close-modal">Cancel</button><button class="btn btn-primary" type="submit">Create case</button></div></form>' : '<div class="empty"><p>Add a client first.</p><button class="btn btn-primary" type="button" data-action="add-client">Add client</button><div class="modal-foot"><button class="btn btn-quiet" type="button" data-action="close-modal">Close</button></div></div>';
+  } else if (m.type === "activity") {
+    title = "Add activity";
+    const c = caseById(m.caseId);
+    body = '<form class="stack" data-form="activity"><input type="hidden" name="caseId" value="' + esc(m.caseId) + '" /><div class="form-grid"><div class="field"><label class="field-label">Date</label><input class="input" type="date" name="date" value="' + today() + '" required /></div><div class="field"><label class="field-label">Status</label><select class="select" name="status">' + ACTIVITY_STATUSES.map((s) => '<option value="' + s + '"' + (s === "in_progress" ? " selected" : "") + '>' + esc(statusLabel(s)) + '</option>').join("") + '</select></div><div class="field span-2"><label class="field-label">Quick template</label><select class="select" data-template-select><option value="">Choose a template (optional)</option>' + db.templates.map((t) => '<option value="' + esc(t.textEn) + '">' + esc(t.textEn) + (t.textKh ? ' — ' + esc(t.textKh) : "") + '</option>').join("") + '</select></div><div class="field span-2"><label class="field-label">Action</label><input class="input" name="action" placeholder="What happened?" required /></div><div class="field"><label class="field-label">Ministry (optional)</label><select class="select" name="ministry"><option value="">No change</option>' + db.settings.ministries.map((o) => '<option value="' + esc(o.id) + '"' + (c && c.ministry === o.id ? " selected" : "") + '>' + esc(o.en || o.kh) + '</option>').join("") + '</select></div><div class="field"><label class="check" style="margin-top:18px"><input type="checkbox" name="signed" /> Signed / stamped</label></div><div class="field span-2"><label class="field-label">Note</label><textarea class="textarea" name="note" placeholder="Private note"></textarea></div></div><div class="modal-foot"><button class="btn btn-quiet" type="button" data-action="close-modal">Cancel</button><button class="btn btn-primary" type="submit">Save activity</button></div></form>';
+  }
+  return '<div class="modal-backdrop" data-action="close-modal"></div><div class="modal-wrap"><div class="modal" data-modal-panel><div class="modal-head"><h2>' + esc(title) + '</h2><button class="btn btn-icon btn-quiet" type="button" data-action="close-modal">×</button></div><div class="modal-body">' + body + '</div></div></div>';
+}
+
+function openModal(type, extra) { ui.modal = { type, ...(extra || {}) }; render(); }
+function closeModal() { ui.modal = null; render(); }
+function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2200); }
+
+app.addEventListener("click", (e) => {
+  const actionEl = e.target.closest("[data-action]");
+  if (!actionEl) return;
+  const action = actionEl.dataset.action;
+  if (action === "close-modal") { e.preventDefault(); closeModal(); return; }
+  if (action === "toggle-theme") { document.documentElement.classList.toggle("dark"); localStorage.setItem(THEME_KEY, document.documentElement.classList.contains("dark") ? "dark" : "light"); return; }
+  if (action === "add-client") { e.preventDefault(); openModal("client"); return; }
+  if (action === "add-case") { e.preventDefault(); openModal("case"); return; }
+  if (action === "add-activity") { e.preventDefault(); openModal("activity", { caseId: actionEl.dataset.case }); return; }
+  if (action === "delete-activity") {
+    if (!confirm("Remove this activity?")) return;
+    db.activities = db.activities.filter((a) => a.id !== actionEl.dataset.id); save(); render(); toast("Activity removed"); return;
+  }
+  if (action === "delete-case") {
+    if (!confirm("Delete this case and all its activities?")) return;
+    db.cases = db.cases.filter((c) => c.id !== actionEl.dataset.id);
+    db.activities = db.activities.filter((a) => a.caseId !== actionEl.dataset.id); save(); location.hash = "#/cases"; render(); toast("Case deleted"); return;
+  }
+  if (action === "copy") { const v = actionEl.dataset.value || ""; if (navigator.clipboard) navigator.clipboard.writeText(v).then(() => toast("Link copied")).catch(() => prompt("Copy this link:", v)); else prompt("Copy this link:", v); return; }
+  if (action === "client-cases") {
+    const client = db.clients.find((c) => c.id === actionEl.dataset.client);
+    if (client) { ui.filters.cases.q = clientName(client); ui.filters.cases.status = ""; ui.filters.cases.ministry = ""; ui.filters.cases.serviceType = ""; location.hash = "#/cases"; if (parseRoute().page === "cases") render(); }
+    return;
+  }
+  if (action === "remove-service") { db.settings.serviceTypes = db.settings.serviceTypes.filter((o) => o.id !== actionEl.dataset.id); save(); render(); return; }
+  if (action === "remove-ministry") { db.settings.ministries = db.settings.ministries.filter((o) => o.id !== actionEl.dataset.id); save(); render(); return; }
+  if (action === "clear-case-filters") { e.preventDefault(); ui.filters.cases = { q: "", status: "", ministry: "", serviceType: "", sort: "attention" }; location.hash = "#/cases"; render(); return; }
+  if (action === "export") { const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" }); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "tracker-backup-" + today() + ".json"; a.click(); URL.revokeObjectURL(a.href); toast("Backup downloaded"); return; }
+  if (action === "import") {
+    const input = document.createElement("input"); input.type = "file"; input.accept = ".json,application/json";
+    input.onchange = () => { const file = input.files && input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const next = JSON.parse(String(reader.result)); if (!next || !Array.isArray(next.clients) || !Array.isArray(next.cases) || !Array.isArray(next.activities)) throw new Error("Invalid backup"); db = next; if (!db.settings) db.settings = defaultSettings(); save(); render(); toast("Backup imported"); } catch (err) { alert("Could not import this file."); } }; reader.readAsText(file); };
+    input.click(); return;
+  }
+  if (action === "reset") {
+    if (!confirm("Reset everything to the sample data? Your current browser data will be replaced.")) return;
+    localStorage.removeItem(STORAGE_KEY); location.reload(); return;
+  }
+  if (action === "print") { window.print(); return; }
+});
+
+app.addEventListener("submit", (e) => {
+  const form = e.target.closest("form[data-form]");
+  if (!form) return;
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(form).entries());
+  const kind = form.dataset.form;
+  if (kind === "filter-cases") { ui.filters.cases = { q: data.q || "", status: data.status || "", ministry: data.ministry || "", serviceType: data.serviceType || "", sort: data.sort || "attention" }; render(); return; }
+  if (kind === "filter-clients") { ui.filters.clients.q = data.q || ""; render(); return; }
+  if (kind === "client") {
+    if (!String(data.nameKh || "").trim() && !String(data.nameEn || "").trim()) { alert("Enter a Khmer or English name."); return; }
+    db.clients.push({ id: uid(), nameKh: String(data.nameKh || "").trim(), nameEn: String(data.nameEn || "").trim(), phone: String(data.phone || "").trim(), note: String(data.note || "").trim(), createdAt: new Date().toISOString() });
+    save(); closeModal(); toast("Client added"); return;
+  }
+  if (kind === "case") {
+    if (!data.clientId) { alert("Choose a client."); return; }
+    const status = CASE_STATUSES.includes(data.status) ? data.status : "in_progress";
+    db.cases.push({ id: uid(), clientId: data.clientId, serviceType: data.serviceType || "", ministry: data.ministry || "", description: String(data.description || "").trim(), startDate: data.startDate || today(), endDate: data.endDate || "", status, shareToken: uid().replace(/-/g, "").slice(0, 24), createdAt: new Date().toISOString() });
+    save(); closeModal(); toast("Case created"); return;
+  }
+  if (kind === "activity") {
+    const caseId = data.caseId;
+    const isSigned = String(data.signed || "") === "on";
+    db.activities.push({ id: uid(), caseId, date: data.date || today(), ministry: data.ministry || "", action: String(data.action || "").trim(), status: ACTIVITY_STATUSES.includes(data.status) ? data.status : "in_progress", signed: isSigned, note: String(data.note || "").trim(), createdAt: new Date().toISOString() });
+    const c = caseById(caseId);
+    if (c) {
+      if (data.ministry) c.ministry = data.ministry;
+      if (data.status === "rejected") c.status = "rejected";
+      if ((c.status === "done" || c.status === "success") && !c.endDate) c.endDate = today();
+    }
+    save(); closeModal(); toast("Activity added"); render(); return;
+  }
+  if (kind === "settings-warning") {
+    const orange = Math.max(1, Number(data.orange) || 7);
+    const red = Math.max(orange + 1, Number(data.red) || 14);
+    db.settings.warningOrangeDays = orange; db.settings.warningRedDays = red; save(); render(); toast("Thresholds saved"); return;
+  }
+  if (kind === "add-service" || kind === "add-ministry") {
+    const key = kind === "add-service" ? "serviceTypes" : "ministries";
+    const en = String(data.en || "").trim();
+    if (!en) return;
+    let id = slug(en); const list = db.settings[key]; let n = 2; const base = id;
+    while (list.some((o) => o.id === id)) { id = base + "-" + n; n++; }
+    list.push({ id, en, kh: String(data.kh || "").trim() });
+    save(); render(); toast("Option added"); return;
+  }
+});
+
+app.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.matches("[data-template-select]")) {
+    const input = document.querySelector('form[data-form="activity"] input[name="action"]');
+    if (input && t.value) input.value = t.value;
+    return;
+  }
+  if (t.matches("[data-case-status]")) {
+    const c = caseById(t.dataset.caseStatus);
+    if (!c) return;
+    c.status = t.value;
+    if (isClosed(c) && !c.endDate) c.endDate = today();
+    if (!isClosed(c) && c.status !== "rejected") c.endDate = "";
+    save(); render(); toast("Status updated"); return;
+  }
+});
+
+async function init() {
+  if (localStorage.getItem(THEME_KEY) === "dark" || (!localStorage.getItem(THEME_KEY) && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark");
+  db = load();
+  if (!db || !Array.isArray(db.clients) || !Array.isArray(db.cases) || !Array.isArray(db.activities)) {
+    try { const res = await fetch("./seed.json", { cache: "no-store" }); if (!res.ok) throw new Error("seed unavailable"); db = fromSeed(await res.json()); }
+    catch { db = emptyDb(); }
+    save();
+  }
+  if (!db.settings) db.settings = defaultSettings();
+  if (!location.hash) location.hash = "#/today";
+  window.addEventListener("hashchange", render);
+  render();
+}
+init();
+</script>
+</body>
+</html>
