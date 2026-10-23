@@ -59,6 +59,27 @@ npm run start -- --hostname 0.0.0.0
 
 Then open `http://<office-computer-ip>:3000` from the other device. Allow port 3000 through the firewall. Do not expose this app directly to the internet. If it is placed behind HTTPS, set `SESSION_COOKIE_SECURE=true` in `.env`.
 
+## Deploy online (Render)
+
+The app needs a persistent disk because it writes `data/tracker.xlsx`. Render's Starter plan supports persistent disks, so the included `render.yaml` creates:
+
+- A Node web service built with `npm ci && npm run build` and started with `npm start`.
+- A 1 GB disk mounted at `/var/data`, with `DATA_DIR=/var/data`.
+- HTTPS cookie protection through `SESSION_COOKIE_SECURE=true`.
+
+[Deploy to Render](https://render.com/deploy?repo=https://github.com/ChhounSoktharnak303/FollowUpDocumentsClient)
+
+Sign in with GitHub, choose a region, and set the two secrets when prompted:
+
+- `APP_PASSWORD`: the shared office password. Do not reuse the local demo password.
+- `SESSION_SECRET`: at least 32 random characters. Generate one with:
+
+  ```powershell
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+
+The online instance starts with a fresh, empty workbook on the disk. Keep exactly one instance running against one workbook. Anyone with the URL can reach the login page, so use a strong `APP_PASSWORD`.
+
 ## Data storage
 
 The workbook is `data/tracker.xlsx` and contains these sheets:

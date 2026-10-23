@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: follow-up-documents
+    runtime: node
+    plan: starter
+    region: singapore
+    branch: main
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATA_DIR
+        value: /var/data
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: APP_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+    disk:
+      name: tracker-data
+      mountPath: /var/data
+      sizeGB: 1
